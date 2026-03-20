@@ -4,12 +4,14 @@ import 'dart:isolate';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'crypto/crypto_service.dart';
 import 'database/tables.dart';
 import 'providers/database_provider.dart';
 import 'providers/hazard_marker_provider.dart';
 import 'providers/trusted_sender_provider.dart';
+import 'utils/permission_utils.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,6 +59,38 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _tapCount = 0;
   DateTime? _lastTapTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPermissions();
+  }
+
+  Future<void> _initPermissions() async {
+    final granted = await requestAppPermissions();
+    if (!granted && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Permissions are required for offline syncing.'),
+          action: SnackBarAction(
+            label: 'Settings',
+            onPressed: () => openAppSettings(),
+          ),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+
+    final locationEnabled = await checkLocationServices();
+    if (!locationEnabled && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enable Location Services (GPS) for Bluetooth discovery.'),
+          duration: Duration(seconds: 5),
+        ),
+      );
+    }
+  }
 
   void _handlePointerDown(PointerDownEvent event) {
     final now = DateTime.now();
