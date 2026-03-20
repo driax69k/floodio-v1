@@ -25,23 +25,6 @@ class TrustedSendersController extends _$TrustedSendersController {
         ),
         mode: InsertMode.insertOrReplace,
       );
-    await db.transaction(() async {
-      await db.into(db.trustedSenders).insert(
-        TrustedSendersCompanion.insert(
-          publicKey: publicKey,
-          name: name,
-        ),
-        mode: InsertMode.insertOrReplace,
-      );
-
-      // Update existing hazard markers to reflect new trust status
-      await (db.update(db.hazardMarkers)..where((t) => t.senderId.equals(publicKey)))
-          .write(const HazardMarkersCompanion(trustTier: Value(3)));
-
-      // Update existing news items to reflect new trust status
-      await (db.update(db.newsItems)..where((t) => t.senderId.equals(publicKey)))
-          .write(const NewsItemsCompanion(trustTier: Value(3)));
-    });
 
       // Update existing hazard markers
       await (db.update(db.hazardMarkers)..where((t) => t.senderId.equals(publicKey)))
