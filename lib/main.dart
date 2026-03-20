@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'main.g.dart';
+
+// Providers are defined by annotating a function with @riverpod
+@riverpod
+String label(Ref ref) => 'Hello world';
 
 void main() {
-  runApp(const MainApp());
+  runApp(ProviderScope(child: Home()));
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class Home extends ConsumerWidget {
+  const Home({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    return MaterialApp(
       home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
+        // We can then listen to the generated provider in our widgets.
+        body: Text(ref.watch(labelProvider)),
       ),
     );
   }
