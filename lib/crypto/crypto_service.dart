@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -6,41 +7,96 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 part 'crypto_service.g.dart';
 
+Future<(SimpleKeyPairData, SimplePublicKey, String?)> _isolateInitKeys(String? privateKeyStr) async {
+  final algorithm = Ed25519();
+  SimpleKeyPair userKeyPair;
+  String? newPrivKeyStr;
+
+  if (privateKeyStr != null) {
+    final privateKeyBytes = base64Decode(privateKeyStr);
+    userKeyPair = await algorithm.newKeyPairFromSeed(privateKeyBytes);
+  } else {
+    userKeyPair = await algorithm.newKeyPair();
+    final privateKeyBytes = await userKeyPair.extractPrivateKeyBytes();
+    newPrivKeyStr = base64Encode(privateKeyBytes);
+  }
+
+  final serverSeed = List<int>.filled(32, 1);
+  final serverKeyPair = await algorithm.newKeyPairFromSeed(serverSeed);
+  final serverPubKey = await serverKeyPair.extractPublicKey();
+
+  final userKeyPairExtracted = await userKeyPair.extract();
+  return (userKeyPairExtracted, serverPubKey, newPrivKeyStr);
+}
+
+Future<String> _isolateSignData(SimpleKeyPairData keyPairData, List<int> data) async {
+  final algorithm = Ed25519();
+  final signature = await algorithm.sign(data, keyPair: keyPairData);
+  return base64Encode(signature.bytes);
+}
+
+Future<int> _isolateVerifyData(List<int> data, String signatureStr, String senderPublicKeyStr, List<int> serverPubKeyBytes, List<String> trustedPublicKeys) async {
+  try {
+    final signatureBytes = base64Decode(signatureStr);
+    final senderPubKeyBytes = base64Decode(senderPublicKeyStr);
+
+    final algorithm = Ed25519();
+    final senderPubKey = SimplePublicKey(senderPubKeyBytes, type: KeyPairType.ed25519);
+
+    final isValid = await algorithm.verify(
+      data,
+      signature: Signature(signatureBytes, publicKey: senderPubKey),
+    );
+    if (!isValid) return 5;
+
+    if (senderPublicKeyStr == base64Encode(serverPubKeyBytes)) {
+      return 1;
+    }
+
+    return trustedPublicKeys.contains(senderPublicKeyStr) ? 3 : 4;
+  } catch (e) {
+    return 5;
+  }
+}
+
+Future<(SimpleKeyPairData, SimplePublicKey, String?)> _runInitKeys(String? privateKeyStr) {
+  return Isolate.run(() => _isolateInitKeys(privateKeyStr));
+}
+
+Future<String> _runSignData(SimpleKeyPairData keyPair, List<int> data) {
+  return Isolate.run(() => _isolateSignData(keyPair, data));
+}
+
+Future<int> _runVerifyData(List<int> data, String signatureStr, String senderPublicKeyStr, List<int> serverPubKeyBytes, List<String> trustedPublicKeys) {
+  return Isolate.run(() => _isolateVerifyData(data, signatureStr, senderPublicKeyStr, serverPubKeyBytes, trustedPublicKeys));
+}
+
 @Riverpod(keepAlive: true)
 class CryptoService extends _$CryptoService {
-  late final Ed25519 _algorithm;
-  late SimpleKeyPair _userKeyPair;
+  late SimpleKeyPairData _userKeyPair;
   late SimplePublicKey _serverPublicKey;
 
   @override
   Future<void> build() async {
-    _algorithm = Ed25519();
     await _initKeys();
   }
 
   Future<void> _initKeys() async {
     final prefs = await SharedPreferences.getInstance();
-    
-    // 1. User Key Pair
     final privateKeyStr = prefs.getString('user_private_key');
-    if (privateKeyStr != null) {
-      final privateKeyBytes = base64Decode(privateKeyStr);
-      _userKeyPair = await _algorithm.newKeyPairFromSeed(privateKeyBytes);
-    } else {
-      _userKeyPair = await _algorithm.newKeyPair();
-      final privateKeyBytes = await _userKeyPair.extractPrivateKeyBytes();
-      await prefs.setString('user_private_key', base64Encode(privateKeyBytes));
+    
+    final (userKeyPairData, serverPublicKey, newPrivateKeyStr) = await _runInitKeys(privateKeyStr);
+
+    if (newPrivateKeyStr != null) {
+      await prefs.setString('user_private_key', newPrivateKeyStr);
     }
 
-    // 2. Server Public Key (Hardcoded for PoC)
-    final serverSeed = List<int>.filled(32, 1); // Dummy seed
-    final serverKeyPair = await _algorithm.newKeyPairFromSeed(serverSeed);
-    _serverPublicKey = await serverKeyPair.extractPublicKey();
+    _userKeyPair = userKeyPairData;
+    _serverPublicKey = serverPublicKey;
   }
 
   Future<String> signData(List<int> data) async {
-    final signature = await _algorithm.sign(data, keyPair: _userKeyPair);
-    return base64Encode(signature.bytes);
+    return _runSignData(_userKeyPair, data);
   }
 
   Future<String> getPublicKeyString() async {
@@ -54,30 +110,8 @@ class CryptoService extends _$CryptoService {
     required String senderPublicKeyStr,
     required List<String> trustedPublicKeys,
   }) async {
-    try {
-      final signatureBytes = base64Decode(signatureStr);
-      final senderPubKeyBytes = base64Decode(senderPublicKeyStr);
-      final senderPubKey = SimplePublicKey(senderPubKeyBytes, type: KeyPairType.ed25519);
+    final serverPubKeyBytes = _serverPublicKey.bytes;
 
-      // 1. Verify the signature against the claimed sender's public key
-      final isValid = await _algorithm.verify(
-        data,
-        signature: Signature(signatureBytes, publicKey: senderPubKey),
-      );
-      if (!isValid) return 5; // 5 = Invalid/Spoofed
-
-      // 2. Check if the sender is the Official Server
-      final serverPubKeyBytes = _serverPublicKey.bytes;
-      if (senderPublicKeyStr == base64Encode(serverPubKeyBytes)) {
-        return 1; // Tier 1: Official
-      }
-
-      // 3. Check if the sender is Personally-Trusted
-      return trustedPublicKeys.contains(senderPublicKeyStr) ? 3 : 4;
-      
-    } catch (e) {
-      // Catch FormatExceptions from invalid base64 or malformed keys
-      return 5; 
-    }
+    return _runVerifyData(data, signatureStr, senderPublicKeyStr, serverPubKeyBytes, trustedPublicKeys);
   }
 }
