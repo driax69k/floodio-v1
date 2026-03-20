@@ -1,6 +1,30 @@
 import 'package:drift/drift.dart';
 
-@DataClassName('HazardMarkerEntity')
+class HazardMarkerEntity {
+  final String id;
+  final double latitude;
+  final double longitude;
+  final String type;
+  final String description;
+  final int timestamp;
+  final String senderId;
+  final String? signature;
+  final int trustTier;
+
+  HazardMarkerEntity({
+    required this.id,
+    required this.latitude,
+    required this.longitude,
+    required this.type,
+    required this.description,
+    required this.timestamp,
+    required this.senderId,
+    this.signature,
+    required this.trustTier,
+  });
+}
+
+@UseRowClass(HazardMarkerEntity)
 class HazardMarkers extends Table {
   TextColumn get id => text()();
   RealColumn get latitude => real()();
@@ -16,7 +40,27 @@ class HazardMarkers extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DataClassName('NewsItemEntity')
+class NewsItemEntity {
+  final String id;
+  final String title;
+  final String content;
+  final int timestamp;
+  final String senderId;
+  final String? signature;
+  final int trustTier;
+
+  NewsItemEntity({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.timestamp,
+    required this.senderId,
+    this.signature,
+    required this.trustTier,
+  });
+}
+
+@UseRowClass(NewsItemEntity)
 class NewsItems extends Table {
   TextColumn get id => text()();
   TextColumn get title => text()();
@@ -30,7 +74,19 @@ class NewsItems extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DataClassName('SyncPayloadEntity')
+class SyncPayloadEntity {
+  final String id;
+  final Uint8List payload;
+  final int timestamp;
+
+  SyncPayloadEntity({
+    required this.id,
+    required this.payload,
+    required this.timestamp,
+  });
+}
+
+@UseRowClass(SyncPayloadEntity)
 class SyncPayloads extends Table {
   TextColumn get id => text()();
   BlobColumn get payload => blob()();
@@ -40,7 +96,17 @@ class SyncPayloads extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DataClassName('SeenMessageIdEntity')
+class SeenMessageIdEntity {
+  final String messageId;
+  final int timestamp;
+
+  SeenMessageIdEntity({
+    required this.messageId,
+    required this.timestamp,
+  });
+}
+
+@UseRowClass(SeenMessageIdEntity)
 class SeenMessageIds extends Table {
   TextColumn get messageId => text()();
   IntColumn get timestamp => integer()();
