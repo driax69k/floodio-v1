@@ -1,26 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'main.g.dart';
-
-// Providers are defined by annotating a function with @riverpod
-@riverpod
-String label(Ref ref) => 'Hello world';
 
 void main() {
-  runApp(ProviderScope(child: Home()));
+  runApp(const ProviderScope(child: FloodioApp()));
 }
 
-class Home extends ConsumerWidget {
-  const Home({super.key});
+class FloodioApp extends ConsumerWidget {
+  const FloodioApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      home: Scaffold(
-        // We can then listen to the generated provider in our widgets.
-        body: Text(ref.watch(labelProvider)),
+      title: 'Floodio',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
+      ),
+      home: const HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Floodio PoC'),
+      ),
+      body: const Center(
+        child: Text('Database and State Management Initialized'),
       ),
     );
   }
