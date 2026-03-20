@@ -35,8 +35,8 @@ The PoC will **not** be a fully polished app. It will focus on proving the riski
 *   **Tasks:**
     1.  **Key Generation:** On app install, generate a public/private key pair for the user.
     2.  **Tier 1 & 2 (Official/Admin):** Hardcode a "Server Public Key" into the app. Create a script to sign a dummy "Official News Alert" with the Server Private Key.
-    3.  **Tier 3 (Personally-Trusted):** Build a simple QR code generator/scanner (`mobile_scanner` package) so two phones can scan each other's Public Keys.
-    4.  **Verification Logic:** Write a utility class that intercepts incoming data. If the signature matches the Server Key -> Tag as *Official*. If it matches a scanned key -> Tag as *Personally-Trusted*. Otherwise -> Tag as *Crowdsourced*.
+    3.  **Tier 3 (Personally-Trusted):** Build a UI mechanism to manually mark a sender as "Trusted" directly from their messages, saving their Public Key to a local trusted list.
+    4.  **Verification Logic:** Write a utility class that intercepts incoming data. If the signature matches the Server Key -> Tag as *Official*. If it matches a saved key in the trusted list -> Tag as *Personally-Trusted*. Otherwise -> Tag as *Crowdsourced*.
 
 ### **Phase 3: P2P Networking (Weeks 3 & 4)**
 **Goal:** Establish device-to-device communication. *This is the most challenging phase.*

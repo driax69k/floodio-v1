@@ -27,7 +27,7 @@ However, the primary challenges will not be conceptual, but technical—specific
 *   To prevent malicious actors from spoofing "Official" data, the trust model must be enforced cryptographically, not just by UI tags.
     *   **Tier 1: Official:** Data downloaded from the internet is signed with your server's Private Key. Offline apps verify this using a hardcoded Public Key. If the signature matches, it is mathematically proven to be Official.
     *   **Tier 2: Admin-Trusted:** Similar to Tier 1, but signed by designated community leaders whose public keys are distributed by the server.
-    *   **Tier 3: Personally-Trusted:** Users scan each other's QR codes in person to exchange public keys. Data originating from these keys is marked as trusted.
+    *   **Tier 3: Personally-Trusted:** Users can manually mark specific senders as "Trusted" within the app's UI (e.g., after finding their updates consistently reliable). Data originating from these saved public keys is marked as trusted.
     *   **Tier 4: Crowdsourced:** Unsigned or unverified data. The app should limit the propagation of this data (e.g., only allow it to hop 2 or 3 times away from the original sender) to prevent network congestion and widespread panic.
 
 ---
