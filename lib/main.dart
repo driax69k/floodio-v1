@@ -339,6 +339,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.floodio',
         ),
+        PolygonLayer(
+          polygons: [
+            Polygon(
+              points: const [
+                LatLng(37.8060, -122.4100),
+                LatLng(37.7950, -122.3940),
+                LatLng(37.7780, -122.3880),
+                LatLng(37.7790, -122.3980),
+                LatLng(37.7960, -122.4040),
+                LatLng(37.8050, -122.4150),
+              ],
+              color: Colors.blue.withOpacity(0.3),
+              borderColor: Colors.blue,
+              borderStrokeWidth: 2,
+              label: 'Official Flood Zone',
+              labelStyle: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+              labelPlacementCalculator: const PolygonLabelPlacementCalculator.polylabel(),
+            ),
+          ],
+        ),
         CircleLayer(
           circles: markers.where((m) => m.trustTier == 1).map((m) => CircleMarker(
             point: LatLng(m.latitude, m.longitude),
