@@ -21,6 +21,9 @@
   - Resolved manual protobuf implementation errors (`clone()`, `PbList`).
   - Fixed minor deprecated `withOpacity` calls and unused variables.
   - **Final Result:** `flutter analyze` reports "No issues found!".
+- [ ] **Windows Build (Attempted)**
+  - Failed due to missing Visual Studio toolchain on the host machine.
+  - Created `VISUAL_STUDIO_SETUP.md` to guide the user through installing the correct C++ workload.
 
 ---
 ## Summary
