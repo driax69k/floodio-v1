@@ -350,7 +350,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 LatLng(37.7960, -122.4040),
                 LatLng(37.8050, -122.4150),
               ],
-              color: Colors.blue.withOpacity(0.3),
+              color: Colors.blue.withValues(alpha: 0.3),
               borderColor: Colors.blue,
               borderStrokeWidth: 2,
               label: 'Official Flood Zone',
@@ -367,7 +367,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             point: LatLng(m.latitude, m.longitude),
             radius: 500,
             useRadiusInMeter: true,
-            color: Colors.blue.withOpacity(0.2),
+            color: Colors.blue.withValues(alpha: 0.2),
             borderColor: Colors.blue,
             borderStrokeWidth: 2,
           )).toList(),
@@ -556,7 +556,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final markersAsync = ref.watch(hazardMarkersControllerProvider);
     final newsAsync = ref.watch(newsItemsControllerProvider);
     final cryptoState = ref.watch(cryptoServiceProvider);
-    final trustedSendersAsync = ref.watch(trustedSendersControllerProvider);
 
     return Listener(
       behavior: HitTestBehavior.translucent,
