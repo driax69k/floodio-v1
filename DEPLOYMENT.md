@@ -36,6 +36,32 @@ flutter build apk --split-per-abi
 
 ---
 
+## 💻 PC Deployment (Windows, macOS, Linux)
+
+### 1. Windows
+**Requirements**: Visual Studio 2022 with "Desktop development with C++" workload.
+```bash
+flutter build windows
+```
+The executable will be in `build\windows\x64\runner\Release`.
+
+### 2. macOS
+**Requirements**: Xcode installed.
+```bash
+flutter build macos
+```
+The `.app` bundle will be in `build/macos/Build/Products/Release/`.
+
+### 3. Linux
+**Requirements**: `clang`, `cmake`, `ninja-build`, `pkg-config`, `libgtk-3-dev`.
+```bash
+flutter build linux
+```
+
+> **Note on PC Features**: While the UI and Database are fully functional on PC, P2P syncing features (Wi-Fi Direct/BLE Advertising) are primarily optimized for Android. PC builds are best used as local dashboards or for data analysis.
+
+---
+
 ## 🏗 CI/CD Recommendations
 
 For professional development, it is recommended to automate the build and verification process using **GitHub Actions**.
